@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <util/delay.h>
+#include <avr/eeprom.h>
 
 #define SetRed(val) OCR2 = ceil(val);
 #define SetGreen(val) OCR1B = ceil(val);
@@ -206,15 +207,12 @@ TIMSK=0x00;
 ACSR=0x80;
 SFIOR=0x00;
 
-srand(1);             //eieoeaeece?oai ?aiaiiaeca? yoei cia?aieai
-
-DEBUG_LED;
-DEBUG_LED;
-DEBUG_LED;
+srand(eeprom_read_word(0));             //eieoeaeece?oai ?aiaiiaeca? yoei cia?aieai
+eeprom_write_word(0,rand());
 
 now.hue=0;
 now.sat=0;
-now.val=0xFF;
+now.val=0;
 hsvCopyToLED();
 
 struct HSVColor to;
@@ -225,39 +223,25 @@ to.val=0xFF;
 
 while (1)
       {
+
 		to.hue=-1;
 		while(! (to.hue>0 && to.hue<360) )
 			to.hue=rand();
 
-		while(! (to.sat>128 && to.sat<0xFF) )
+		while(! (to.sat>0 && to.sat<0xFF) )
 			to.sat=rand();
-		to.val=rand()&0xFF;
+
+		while(! (to.val>128 && to.val<0xFF) )
+			to.val=rand(); // иначе может мигать на низкой яркости
 
 		while(! (delayToMorph>1000 && delayToMorph<5000))
 			delayToMorph=rand();
 
 		hsvMorphTo(to,delayToMorph);
 
-		while(!(delayToMorph>2000 && delayToMorph<4000))
+		while(!(delayToMorph>3000 && delayToMorph<7000))
 			delayToMorph=rand();
 
 		_delay_ms(delayToMorph);
-
-	  /*
-	  to.hue=rand()&0xFF;
-	  to.sat=0xFF;
-	  to.val=128;
-
-    	delayToMorph=0;
-		while(delayToMorph<1000 || delayToMorph>3000)
-			delayToMorph=rand();
-
-		hsvMorphTo(to,delayToMorph	);
-
-
-		delayToMorph=0;
-		while(delayToMorph<500 || delayToMorph>1000)
-			delayToMorph=rand();
-		_delay_ms(delayToMorph);*/
-      };
+      }
 }
