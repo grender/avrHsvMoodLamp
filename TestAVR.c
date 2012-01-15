@@ -60,7 +60,14 @@ struct Color hsv2rgb(struct HSVColor hsv)
 	normTo255(res.blue);
 	return res;
 }
-
+/*
+void rgbCopyToLED()
+{
+	SetRed(now.red);
+	SetGreen(now.green);
+	SetBlue(now.blue);
+}
+*/
 void hsvCopyToLED()
 {
 	while (now.hue < 0)
@@ -105,13 +112,14 @@ void hsvMorphTo(struct HSVColor to,
 
 }
 
+
 /*
 void rgbMorphTo(struct Color to,
 			unsigned int delay)
 {
 	float deltaRed=(to.red-now.red)/delay;
 	float deltaGreen=(to.green-now.green)/delay;
-	float deltaBlue=(to.blue-now.green)/delay;
+	float deltaBlue=(to.blue-now.blue)/delay;
 
 	for(unsigned int i=0;i<delay;i++)
 	{
@@ -220,19 +228,20 @@ int delayToMorph=0;
 
 to.sat=0xFF;
 to.val=0xFF;
-
+float oldHue=0;
 while (1)
       {
-
+/*
+		oldHue=to.hue;
 		to.hue=-1;
-		while(! (to.hue>0 && to.hue<360) )
+		while(! (to.hue>0 && to.hue<360 && fabs(oldHue-to.hue)>20) )
 			to.hue=rand();
 
-		while(! (to.sat>0 && to.sat<0xFF) )
-			to.sat=rand();
+		//while(! (to.sat>0 && to.sat<0xFF) )
+			to.sat=0xff;//rand();
 
-		while(! (to.val>128 && to.val<0xFF) )
-			to.val=rand(); // иначе может мигать на низкой яркости
+		//while(! (to.val>128 && to.val<0xFF) )
+			to.val=0xFF; //rand(); // иначе может мигать на низкой яркости
 
 		while(! (delayToMorph>1000 && delayToMorph<5000))
 			delayToMorph=rand();
@@ -243,5 +252,28 @@ while (1)
 			delayToMorph=rand();
 
 		_delay_ms(delayToMorph);
+*/
+
+	to.hue=now.hue+22;
+	to.sat=0xFF;
+	while(! (to.val>172 && to.val<0xFF) )
+				to.val=rand();
+	hsvMorphTo(to,200);
+
+	/*struct Color g;
+	g.red=0xFF;
+	g.green=0;
+	g.blue=0;
+	rgbMorphTo(g,1000);
+
+	g.red=0;
+	g.green=0xFF;
+	g.blue=0;
+	rgbMorphTo(g,1000);
+
+	g.red=0;
+	g.green=0;
+	g.blue=0xFF;
+	rgbMorphTo(g,1000);*/
       }
 }
