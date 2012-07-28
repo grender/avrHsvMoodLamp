@@ -25,7 +25,8 @@ struct HSVColor {
 };
 
 
-struct HSVColor now;
+struct HSVColor nowHsv;
+struct Color nowRgb;
 
 struct Color hsv2rgb(struct HSVColor hsv)
 {
@@ -60,86 +61,84 @@ struct Color hsv2rgb(struct HSVColor hsv)
 	normTo255(res.blue);
 	return res;
 }
-/*
-void rgbCopyToLED()
+
+inline void rgbCopyToLED()
 {
-	SetRed(now.red);
-	SetGreen(now.green);
-	SetBlue(now.blue);
+	SetRed(ceil(nowRgb.red));
+	SetGreen(ceil(nowRgb.green));
+	SetBlue(ceil(nowRgb.blue));
 }
-*/
+
 void hsvCopyToLED()
 {
-	while (now.hue < 0)
-		now.hue += 360;
-	while (now.hue >= 360)
-		now.hue -= 360;
+	while (nowHsv.hue < 0)
+		nowHsv.hue += 360;
+	while (nowHsv.hue >= 360)
+		nowHsv.hue -= 360;
 
-	struct Color nowRGB=hsv2rgb(now);
+	struct Color nowRGB=hsv2rgb(nowHsv);
 	SetRed(nowRGB.red);
 	SetGreen(nowRGB.green);
 	SetBlue(nowRGB.blue);
 }
-
+/*
 void hsvMorphTo(struct HSVColor to,
 			unsigned int delay)
 {
-	float hueDiff=to.hue-now.hue;
+	float hueDiff=to.hue-nowHsv.hue;
 	if(hueDiff>180)
 		to.hue=to.hue-360;
 	else if((-hueDiff)>180)
 		to.hue=to.hue+360;
 
-	float deltaHue=(to.hue-now.hue)/delay;
-	float deltaSat=(to.sat-now.sat)/delay;
-	float deltaVal=(to.val-now.val)/delay;
+	float deltaHue=(to.hue-nowHsv.hue)/delay;
+	float deltaSat=(to.sat-nowHsv.sat)/delay;
+	float deltaVal=(to.val-nowHsv.val)/delay;
 
 	for(unsigned int i=0;i<delay;i++)
 	{
-		now.hue=now.hue+deltaHue;
-		now.sat=now.sat+deltaSat;
-		now.val=now.val+deltaVal;
+		nowHsv.hue=nowHsv.hue+deltaHue;
+		nowHsv.sat=nowHsv.sat+deltaSat;
+		nowHsv.val=nowHsv.val+deltaVal;
 
-		if(now.hue<0)now.hue=0;
-		if(now.hue>360)now.hue=360;
+		if(nowHsv.hue<0)nowHsv.hue=0;
+		if(nowHsv.hue>360)nowHsv.hue=360;
 
-		normTo255(now.sat);
-		normTo255(now.val);
+		normTo255(nowHsv.sat);
+		normTo255(nowHsv.val);
 
 		hsvCopyToLED();
 		_delay_ms(1);
 	}
 
 }
-
-
-/*
+*/
 void rgbMorphTo(struct Color to,
 			unsigned int delay)
 {
-	float deltaRed=(to.red-now.red)/delay;
-	float deltaGreen=(to.green-now.green)/delay;
-	float deltaBlue=(to.blue-now.blue)/delay;
+	float deltaRed=(to.red-nowRgb.red)/delay;
+	float deltaGreen=(to.green-nowRgb.green)/delay;
+	float deltaBlue=(to.blue-nowRgb.blue)/delay;
 
 	for(unsigned int i=0;i<delay;i++)
 	{
-		now.red=now.red+deltaRed;
-		now.green=now.green+deltaGreen;
-		now.blue=now.blue+deltaBlue;
+		nowRgb.red=nowRgb.red+deltaRed;
+		nowRgb.green=nowRgb.green+deltaGreen;
+		nowRgb.blue=nowRgb.blue+deltaBlue;
 
-		if(now.red<0)now.red=0;
-		if(now.red>255)now.red=255;
+		if(nowRgb.red<0)nowRgb.red=0;
+		if(nowRgb.red>255)nowRgb.red=255;
 
-		if(now.green<0)now.green=0;
-		if(now.green>255)now.green=255;
+		if(nowRgb.green<0)nowRgb.green=0;
+		if(nowRgb.green>255)nowRgb.green=255;
 
-		if(now.blue<0)now.blue=0;
-		if(now.blue>255)now.blue=255;
+		if(nowRgb.blue<0)nowRgb.blue=0;
+		if(nowRgb.blue>255)nowRgb.blue=255;
 
 		rgbCopyToLED();
 		_delay_ms(1);
 	}
-}*/
+}
 
 void main(void)
 {
@@ -217,17 +216,16 @@ SFIOR=0x00;
 
 srand(eeprom_read_word(0));             //eieoeaeece?oai ?aiaiiaeca? yoei cia?aieai
 eeprom_write_word(0,rand());
-
-now.hue=0;
-now.sat=0;
-now.val=0;
+/*
+nowHsv.hue=0;
+nowHsv.sat=0;
+nowHsv.val=0;
 hsvCopyToLED();
-
-struct HSVColor to;
+*/
+struct HSVColor toHsv;
+struct Color toRgb;
+struct Color hideToRgb;
 int delayToMorph=0;
-
-to.sat=0xFF;
-to.val=0xFF;
 float oldHue=0;
 while (1)
       {
@@ -253,27 +251,31 @@ while (1)
 
 		_delay_ms(delayToMorph);
 */
+	oldHue=toHsv.hue;
+	while(! (toHsv.hue>0 && toHsv.hue<360 && fabs(oldHue-toHsv.hue)>20) )
+		toHsv.hue=rand();
+	toHsv.sat=0xFF;
+	while(! (toHsv.val>172 && toHsv.val<0xFF) )
+				toHsv.val=rand();
 
-	to.hue=now.hue+22;
-	to.sat=0xFF;
-	while(! (to.val>172 && to.val<0xFF) )
-				to.val=rand();
-	hsvMorphTo(to,200);
+	toRgb=hsv2rgb(toHsv);
 
-	/*struct Color g;
-	g.red=0xFF;
-	g.green=0;
-	g.blue=0;
-	rgbMorphTo(g,1000);
+	int temp=rand();
+	hideToRgb=toRgb;
+	if(temp<RAND_MAX/3){
+		hideToRgb.blue=rand() & 0xF;
+	}else if(temp>RAND_MAX/3 && temp<((RAND_MAX/3)*2)) {
+		hideToRgb.green=rand() & 0xF;
+	}else {
+		hideToRgb.red=rand() & 0xF;
+	}
 
-	g.red=0;
-	g.green=0xFF;
-	g.blue=0;
-	rgbMorphTo(g,1000);
+	while(! (delayToMorph>3000 && delayToMorph<8000))
+		delayToMorph=rand();
+	rgbMorphTo(hideToRgb,5000);
+	rgbMorphTo(toRgb,delayToMorph);
 
-	g.red=0;
-	g.green=0;
-	g.blue=0xFF;
-	rgbMorphTo(g,1000);*/
+	_delay_ms(delayToMorph*1.5f);
+
       }
 }
